@@ -28,6 +28,8 @@ import net.corda.testing.core.expect
 import net.corda.testing.core.expectEvents
 import java.util.*
 import kotlin.test.assertEquals
+import net.corda.finance.flows.CashPaymentFlow;
+
 
 class CreateNode {
 
@@ -43,7 +45,7 @@ class CreateNode {
 
 
            val Prateektest= net.corda.testing.node.User("prateekTest","testpassord2",permissions = setOf(
-                   startFlow<CashIssueAndPaymentFlow>(),
+                   startFlow<CashPaymentFlow>(),
                    invokeRpc("vaultTrackBy")
            ))
 
@@ -102,6 +104,20 @@ class CreateNode {
 
            println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"+gethit)
 
+           val getmeth=  bobProxy.startFlow(::CashPaymentFlow,
+                   1000.DOLLARS,
+                   alice.nodeInfo.singleIdentity()
+           ).returnValue.getOrThrow()
+
+           println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"+getmeth)
+
+           aliceUpdates.expectEvents {
+               expect { update ->
+                   println("Alice got vault update of $update")
+                   val amount: Amount<Issued<Currency>> = update.produced.first().state.data.amount
+                   assertEquals(1000.DOLLARS, amount.withoutIssuer())
+               }
+           }
 
 
        }
