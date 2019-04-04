@@ -8,14 +8,26 @@ import org.junit.Test
 import com.template.Permissions.Companion.startFlow
 import net.corda.finance.flows.CashIssueAndPaymentFlow
 import com.template.ALICE_NAME
+import net.corda.core.utilities.getOrThrow
 import net.corda.client.rpc.CordaRPCClient
+import net.corda.core.contracts.Amount
+import net.corda.core.contracts.Issued
+import net.corda.core.contracts.withoutIssuer
 import net.corda.core.messaging.CordaRPCOps
+import net.corda.core.messaging.startFlow
 import net.corda.core.messaging.vaultTrackBy
 import net.corda.core.node.services.Vault
+import net.corda.core.utilities.OpaqueBytes
 import net.corda.core.utilities.getOrThrow
+import net.corda.finance.DOLLARS
 import net.corda.finance.contracts.asset.Cash
+import net.corda.testing.core.singleIdentity
 import rx.Observable
+import net.corda.core.messaging.FlowHandle
+import net.corda.testing.core.expect
+import net.corda.testing.core.expectEvents
 import java.util.*
+import kotlin.test.assertEquals
 
 class CreateNode {
 
@@ -67,8 +79,28 @@ class CreateNode {
 
            println("^^^^^^^^^^^^^^^^^^^^"+aliceUpdates)
 
+           val issueRef = OpaqueBytes.of(0)
+          val alicehit= aliceProxy.startFlow(::CashIssueAndPaymentFlow,
+                   1000.DOLLARS,
+                   issueRef,
+                   bob.nodeInfo.singleIdentity(),
+                   true,
+                   defaultNotaryIdentity
+           ).returnValue.getOrThrow()
+
+           println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"+alicehit)
 
 
+
+           val gethit=bobVaultUpdates.expectEvents {
+               expect { update ->
+                   println("Bob got vault update of $update")
+                   val amount: Amount<Issued<Currency>> = update.produced.first().state.data.amount
+                   assertEquals(1000.DOLLARS, amount.withoutIssuer())
+               }
+           }
+
+           println("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$"+gethit)
 
 
 
