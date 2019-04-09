@@ -1,12 +1,16 @@
 package com.Exchange
 
 import net.corda.core.identity.Party
+import net.corda.core.toFuture
 import net.corda.core.utilities.OpaqueBytes
 import net.corda.core.utilities.getOrThrow
 import net.corda.finance.DOLLARS
 import net.corda.finance.POUNDS
+import net.corda.finance.`issued by`
 import net.corda.finance.flows.CashIssueFlow
+import net.corda.finance.issuedBy
 import net.corda.finance.workflows.getCashBalances
+import net.corda.testing.core.singleIdentity
 import net.corda.testing.node.MockNetNotaryConfig
 import net.corda.testing.node.MockNetwork
 import net.corda.testing.node.StartedMockNode
@@ -52,6 +56,29 @@ class RPC_Exchange {
 
         printBalances()
 
+        val nodeAVaultupdate=nodeA.services.vaultService.updates.toFuture()
+        val nodeBvaultupdate=nodeB.services.vaultService.updates.toFuture()
+
+        print("Vault state clear ")
+
+//        nodeA.startFlow(ForeignExchangeFlow("Trade1",
+//                POUNDS(100).issuedBy(nodeB.info.singleIdentity().ref(0x01)),
+//                DOLLARS(200).issuedBy(nodeA.info.singleIdentity().ref(0x01)),
+//                nodeB.info.singleIdentity(),
+//                weAreBaseCurrencySeller = false
+//                )).getOrThrow()
+
+        nodeAVaultupdate.get()
+        val balancesA = nodeA.transaction {
+            nodeA.services.getCashBalances()
+        }
+        nodeBvaultupdate.get()
+        val balancesB = nodeB.transaction {
+            nodeB.services.getCashBalances()
+        }
+
+        println("BalanceA\n$balancesA")
+        println("BalanceB\n$balancesB")
 
 
 
