@@ -53,6 +53,12 @@ dependencies {
     cordapp project(":contracts")
 }
 
+
+jar {
+    baseName 'corda-node-driver'
+}
+
+
 task integrationTest(type: Test, dependsOn: []) {
     testClassesDirs = sourceSets.integrationTest.output.classesDirs
     classpath = sourceSets.integrationTest.runtimeClasspath
