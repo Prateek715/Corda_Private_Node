@@ -29,6 +29,7 @@ class RPC_Exchange {
         mockNet = MockNetwork(threadPerNode = true, cordappPackages = listOf("net.corda.finance"))
         nodeA = mockNet.createPartyNode()
         nodeB = mockNet.createPartyNode()
+        println("nodeB registerInititatedflow")
         nodeB.registerInitiatedFlow(ForeignExchangeRemoteFlow::class.java)
         notary = mockNet.defaultNotaryIdentity
     }
@@ -61,14 +62,18 @@ class RPC_Exchange {
 
         print("Vault state clear ")
 
-//        nodeA.startFlow(ForeignExchangeFlow("Trade1",
-//                POUNDS(100).issuedBy(nodeB.info.singleIdentity().ref(0x01)),
-//                DOLLARS(200).issuedBy(nodeA.info.singleIdentity().ref(0x01)),
-//                nodeB.info.singleIdentity(),
-//                weAreBaseCurrencySeller = false
-//                )).getOrThrow()
+        nodeA.startFlow(ForeignExchangeFlow("Trade1",
+                POUNDS(100).issuedBy(nodeB.info.singleIdentity().ref(0x01)),
+                DOLLARS(200).issuedBy(nodeA.info.singleIdentity().ref(0x01)),
+                nodeB.info.singleIdentity(),
+                weAreBaseCurrencySeller = false
+                )).getOrThrow()
+
+        print("Node A start flow cleared")
 
         nodeAVaultupdate.get()
+
+
         val balancesA = nodeA.transaction {
             nodeA.services.getCashBalances()
         }

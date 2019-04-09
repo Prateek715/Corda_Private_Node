@@ -94,8 +94,9 @@ class ForeignExchangeFlow(private val tradeId: String,
                           private val quoteCurrencyAmount: Amount<Issued<Currency>>,
                           private val counterparty: Party,
                           private val weAreBaseCurrencySeller: Boolean): FlowLogic<SecureHash>() {
+    @Suspendable
     override fun call(): SecureHash {
-
+        println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^FOREIGNEXCHANGEFLOW^^^^^^^^^^^^^^^^^^^^^^^^^")
         val (localRequest, remoteRequest) = if (weAreBaseCurrencySeller) {
             val local = FxRequest(tradeId, baseCurrencyAmount, ourIdentity, counterparty)
             val remote = FxRequest(tradeId, quoteCurrencyAmount, counterparty, ourIdentity)
@@ -116,8 +117,17 @@ class ForeignExchangeFlow(private val tradeId: String,
         // Send the request to the counterparty to verify and call their version of prepareOurInputsAndOutputs
         // Then they can return their candidate states
         val counterpartySession = initiateFlow(counterparty)
+
+
+        println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^FOREIGNEXCHANGEFLOW^^^^^^^^^^^^^^^^^^^^^^^^^")
+
+
         counterpartySession.send(remoteRequestWithNotary)
+
+        println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^FOREIGNEXCHANGEFLOW^^^^^^^^^^^^^^^^^^^^^^^^^")
         val theirInputStates = subFlow(ReceiveStateAndRefFlow<Cash.State>(counterpartySession))
+
+        println("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^FOREIGNEXCHANGEFLOW^^^^^^^^^^^^^^^^^^^^^^^^^")
         val theirOutputStates = counterpartySession.receive<List<Cash.State>>().unwrap {
             require(theirInputStates.all { it.state.notary == notary }) {
                 "notary of remote states must be same as for our states"
@@ -142,6 +152,8 @@ class ForeignExchangeFlow(private val tradeId: String,
         // having collated the data create the full transaction.
         val signedTransaction = buildTradeProposal(ourInputStates, ourOutputStates, theirInputStates, theirOutputStates)
 
+
+        println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!******************************Initiating RPC +++++++")
         // pass transaction details to the counterparty to revalidate and confirm with a signature
         // Allow counterparty to access our data to resolve the transaction.
         subFlow(SendTransactionFlow(counterpartySession, signedTransaction))
@@ -226,6 +238,8 @@ class ForeignExchangeRemoteFlow(private val source: FlowSession) : FlowLogic<Uni
 
         // Send back our proposed states and await the full transaction to verify
         val ourKey = serviceHub.keyManagementService.filterMyKeys(ourInputState.flatMap { it.state.data.participants }.map { it.owningKey }).single()
+
+        println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!******************************key generation"+ourKey)
         // SendStateAndRefFlow allows counterparty to access our transaction data to resolve the transaction.
         subFlow(SendStateAndRefFlow(source, ourInputState))
         source.send(ourOutputState)
