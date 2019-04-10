@@ -157,6 +157,8 @@ class ForeignExchangeFlow(private val tradeId: String,
         // pass transaction details to the counterparty to revalidate and confirm with a signature
         // Allow counterparty to access our data to resolve the transaction.
         subFlow(SendTransactionFlow(counterpartySession, signedTransaction))
+
+        println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!******************************Subflow called +++++++")
         val allPartySignedTx = counterpartySession.receive<TransactionSignature>().unwrap {
             val withNewSignature = signedTransaction + it
             // check all signatures are present except the notary
