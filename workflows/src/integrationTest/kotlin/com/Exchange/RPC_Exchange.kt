@@ -73,7 +73,6 @@ class RPC_Exchange {
 
         nodeAVaultupdate.get()
 
-
         val balancesA = nodeA.transaction {
             nodeA.services.getCashBalances()
         }
