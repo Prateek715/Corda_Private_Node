@@ -23,8 +23,8 @@ class TwoPartyTradeFlow(private val otherSideSession: FlowSession,
                       override val progressTracker: ProgressTracker = TwoPartyTradeFlow.Seller.tracker()) : FlowLogic<SignedTransaction>() {
 
         companion object {
-            fun tracker() = ProgressTracker()
-        }
+        fun tracker() = ProgressTracker()
+    }
 
         @Suspendable
         override fun call(): SignedTransaction {
