@@ -26,7 +26,12 @@ class TwoPartyTrade(private val otherSideSession: FlowSession,
 
 
     companion object {
-        object VERIFYING_AND_SIGNING : ProgressTracker.Step("Verifying and signing transaction proposal") {
+        object VERIFYING_AND_SIGNING : ProgressTracker.Step("Verifying and signing transaction proposal")
+        object RECEIVING : ProgressTracker.Step("Waiting for seller trading info")
+
+        object VERIFYING : ProgressTracker.Step("Verifying seller assets")
+        object SIGNING : ProgressTracker.Step("Generating and signing transaction proposal")
+        object COLLECTING_SIGNATURES : ProgressTracker.Step("Collecting signatures from other parties") {
             override fun childProgressTracker() = SignTransactionFlow.tracker()
         }
         fun tracker() = ProgressTracker()
@@ -44,7 +49,7 @@ class TwoPartyTrade(private val otherSideSession: FlowSession,
 
         subFlow(IdentitySyncFlow.Receive(otherSideSession))
 
-        val signTransactionFlow = object : SignTransactionFlow(otherSideSession,TwoPartyTrade.Companion.VERIFYING_AND_SIGNING.childProgressTracker()){
+        val signTransactionFlow = object : SignTransactionFlow(otherSideSession,TwoPartyTrade.tracker()){
             override fun checkTransaction(stx: SignedTransaction) {
                 // Verify that we know who all the participants in the transaction are
                 val states: Iterable<ContractState> = serviceHub.loadStates(stx.tx.inputs.toSet()).map { it.state.data } + stx.tx.outputs.map { it.data }
