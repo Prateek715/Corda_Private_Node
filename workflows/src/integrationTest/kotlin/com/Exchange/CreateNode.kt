@@ -9,6 +9,10 @@ import net.corda.testing.node.User
 /**
  * Allows you to run your nodes through an IDE (as opposed to using deployNodes). Do not use in a production
  * environment.
+ *
+ * Add the quasar agent in the vm path
+ *
+ *
  */
 fun main(args: Array<String>) {
     val rpcUsers = listOf(User("demo", "demo", permissions = setOf("ALL")))
