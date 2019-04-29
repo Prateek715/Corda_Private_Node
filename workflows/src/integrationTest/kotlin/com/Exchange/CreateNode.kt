@@ -10,7 +10,7 @@ import net.corda.testing.node.User
  * Allows you to run your nodes through an IDE (as opposed to using deployNodes). Do not use in a production
  * environment.
  *
- * Add the quasar agent in the vm path
+ * Add the quasar agent in the vm path -ea -javaagent:../lib/quasar.jar
  *
  *
  */
